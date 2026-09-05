@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Registro de Incidencias</string>
-    <string name="app_title">Registro de Incidencias</string>
-    <string name="app_instruction">Presiona el botón para registrar el incidente de ejemplo.</string>
+    <string name="app_title">Registro de incidencia</string>
+    <string name="app_instruction">Completa los datos para preparar un nuevo reporte.</string>
     <string name="incident_icon">!</string>
     <string name="incident_icon_description">Icono de alerta</string>
-    <string name="sample_label">INCIDENTE DE EJEMPLO</string>
-    <string name="sample_incident">Falla de conexión</string>
-    <string name="sample_description">El equipo no puede conectarse a la red del aula.</string>
-    <string name="pending_status">Estado: Pendiente</string>
-    <string name="incident_registered">Estado: Registrado correctamente ✓</string>
-    <string name="register_incident">Registrar incidencia</string>
-    <string name="saved_message">Incidencia guardada</string>
+    <string name="incident_title_hint">Título de la incidencia</string>
+    <string name="incident_title_helper">Ejemplo: Falla de conexión</string>
+    <string name="incident_description_hint">Descripción breve</string>
+    <string name="incident_description_helper">Explica qué ocurrió y dónde.</string>
+    <string name="create_report">Crear reporte</string>
+    <string name="empty_report_status">Aún no hay reporte creado.</string>
+    <string name="prepared_report_status">Reporte preparado: %1$s</string>
+    <string name="prepared_report_detail">Descripción: %1$s</string>
+    <string name="required_field_error">Este campo es obligatorio.</string>
+    <string name="report_ready_message">Reporte preparado correctamente</string>
+    <string name="report_status_label">ESTADO DEL REPORTE</string>
 </resources>
