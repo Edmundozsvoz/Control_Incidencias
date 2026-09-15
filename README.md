@@ -1,6 +1,6 @@
 # Registro de Incidencias
 
-Aplicación Android académica que permite capturar el título y la descripción de una incidencia y preparar un reporte con retroalimentación inmediata. Este avance corresponde a la actividad evaluada de la semana 6 de Técnicas de Producción Industrial de Software I.
+Aplicación Android académica que permite capturar el título y la descripción de una incidencia y preparar un reporte con retroalimentación inmediata. Este avance corresponde al **Primer avance de investigación y evidencia técnica del proyecto (Semana 7)** de Técnicas de Producción Industrial de Software I (Ciclo 02-2026).
 
 ## Funcionalidades implementadas
 
@@ -53,5 +53,8 @@ $env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
 - Incorporar edición y eliminación de incidencias.
 
 ## Autor
+- **Estudiante:** Henry Edmundo Rodríguez Ávalos
+- **Carnet:** 2908092023
+- **Sección:** 01
+- **GitHub:** [Edmundozsvoz](https://github.com/Edmundozsvoz)
 
-Edmundozsvoz — cuenta académica de GitHub.
