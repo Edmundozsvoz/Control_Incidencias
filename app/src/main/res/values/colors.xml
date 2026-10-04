@@ -8,4 +8,8 @@
     <color name="card_border">#D8E0EA</color>
     <color name="success_green">#15803D</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="priority_selected_bg">#EBF2FF</color>
+    <color name="priority_selected_stroke">#2563EB</color>
+    <color name="priority_unselected_bg">#FFFFFFFF</color>
+    <color name="priority_unselected_stroke">#D8E0EA</color>
 </resources>

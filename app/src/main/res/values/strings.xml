@@ -11,9 +11,14 @@
     <string name="incident_description_helper">Explica qué ocurrió y dónde.</string>
     <string name="create_report">Crear reporte</string>
     <string name="empty_report_status">Aún no hay reporte creado.</string>
+    <string name="report_status_label">ESTADO DEL REPORTE</string>
+    <string name="priority_label">Prioridad de la incidencia (toque para seleccionar)</string>
+    <string name="priority_low">Baja</string>
+    <string name="priority_medium">Media</string>
+    <string name="priority_high">Alta</string>
     <string name="prepared_report_status">Reporte preparado: %1$s</string>
-    <string name="prepared_report_detail">Descripción: %1$s</string>
+    <string name="prepared_report_detail">Descripción: %1$s\nPrioridad: %2$s</string>
+    <string name="priority_changed_feedback">Prioridad cambiada a %1$s</string>
     <string name="required_field_error">Este campo es obligatorio.</string>
     <string name="report_ready_message">Reporte preparado correctamente</string>
-    <string name="report_status_label">ESTADO DEL REPORTE</string>
 </resources>
