@@ -12,4 +12,7 @@
     <color name="priority_selected_stroke">#2563EB</color>
     <color name="priority_unselected_bg">#FFFFFFFF</color>
     <color name="priority_unselected_stroke">#D8E0EA</color>
+    <color name="sensor_active_color">#15803D</color>
+    <color name="sensor_inactive_color">#6B7280</color>
+    <color name="sensor_motion_color">#DC2626</color>
 </resources>

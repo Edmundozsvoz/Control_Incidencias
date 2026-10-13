@@ -21,4 +21,11 @@
     <string name="priority_changed_feedback">Prioridad cambiada a %1$s</string>
     <string name="required_field_error">Este campo es obligatorio.</string>
     <string name="report_ready_message">Reporte preparado correctamente</string>
+    <string name="sensor_label">ACELERÓMETRO</string>
+    <string name="sensor_initializing">Iniciando…</string>
+    <string name="sensor_active">Activo</string>
+    <string name="sensor_unavailable">No disponible</string>
+    <string name="sensor_stable">Dispositivo estable</string>
+    <string name="sensor_motion">¡Movimiento detectado!</string>
+    <string name="sensor_no_reading">Esperando lectura…</string>
 </resources>
