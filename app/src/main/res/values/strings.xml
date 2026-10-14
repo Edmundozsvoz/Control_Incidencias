@@ -21,6 +21,8 @@
     <string name="priority_changed_feedback">Prioridad cambiada a %1$s</string>
     <string name="required_field_error">Este campo es obligatorio.</string>
     <string name="report_ready_message">Reporte preparado correctamente</string>
+    <string name="diagnostic_dashboard_title">TABLERO DE DIAGNÓSTICO</string>
+    <string name="diagnostic_dashboard_subtitle">Monitoreo en tiempo real de sensores del dispositivo</string>
     <string name="sensor_label">ACELERÓMETRO</string>
     <string name="sensor_initializing">Iniciando…</string>
     <string name="sensor_active">Activo</string>
@@ -28,4 +30,9 @@
     <string name="sensor_stable">Dispositivo estable</string>
     <string name="sensor_motion">¡Movimiento detectado!</string>
     <string name="sensor_no_reading">Esperando lectura…</string>
+    <string name="proximity_label">SENSOR DE PROXIMIDAD</string>
+    <string name="proximity_near">Objeto próximo detectado (Cerca)</string>
+    <string name="proximity_far">Pantalla despejada (Lejos)</string>
+    <string name="proximity_unavailable">No disponible</string>
+    <string name="proximity_no_reading">Esperando lectura…</string>
 </resources>

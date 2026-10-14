@@ -44,6 +44,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var sensorXText: TextView
     private lateinit var sensorYText: TextView
     private lateinit var sensorZText: TextView
+    private lateinit var proximityStatusChip: TextView
+    private lateinit var proximityInterpretationText: TextView
+    private lateinit var proximityValue: TextView
 
     // ── Form state ───────────────────────────────────────────────────────────
     private var titleState = ""
@@ -54,7 +57,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     // ── Sensor state ─────────────────────────────────────────────────────────
     private lateinit var sensorManager: SensorManager
     private var accelerometer: Sensor? = null
-    private var sensorAvailable = false
+    private var proximitySensor: Sensor? = null
+    private var accelerometerAvailable = false
+    private var proximityAvailable = false
 
     // ─────────────────────────────────────────────────────────────────────────
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -94,6 +99,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         sensorXText = findViewById(R.id.sensorX)
         sensorYText = findViewById(R.id.sensorY)
         sensorZText = findViewById(R.id.sensorZ)
+        proximityStatusChip = findViewById(R.id.proximityStatusChip)
+        proximityInterpretationText = findViewById(R.id.proximityInterpretationText)
+        proximityValue = findViewById(R.id.proximityValue)
     }
 
     // ── Keyboard IME actions ─────────────────────────────────────────────────
@@ -159,19 +167,32 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private fun setupSensor() {
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-        sensorAvailable = accelerometer != null
+        proximitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY)
 
-        if (!sensorAvailable) {
+        accelerometerAvailable = accelerometer != null
+        proximityAvailable = proximitySensor != null
+
+        if (!accelerometerAvailable) {
             renderSensorUnavailable()
+        }
+        if (!proximityAvailable) {
+            renderProximityUnavailable()
         }
     }
 
     override fun onResume() {
         super.onResume()
-        if (sensorAvailable) {
+        if (accelerometerAvailable) {
             sensorManager.registerListener(
                 this,
                 accelerometer,
+                SensorManager.SENSOR_DELAY_NORMAL
+            )
+        }
+        if (proximityAvailable) {
+            sensorManager.registerListener(
+                this,
+                proximitySensor,
                 SensorManager.SENSOR_DELAY_NORMAL
             )
         }
@@ -184,11 +205,17 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     // ── SensorEventListener ───────────────────────────────────────────────────
     override fun onSensorChanged(event: SensorEvent) {
-        if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-            val x = event.values[0]
-            val y = event.values[1]
-            val z = event.values[2]
-            updateSensorUI(x, y, z)
+        when (event.sensor.type) {
+            Sensor.TYPE_ACCELEROMETER -> {
+                val x = event.values[0]
+                val y = event.values[1]
+                val z = event.values[2]
+                updateSensorUI(x, y, z)
+            }
+            Sensor.TYPE_PROXIMITY -> {
+                val distance = event.values[0]
+                updateProximityUI(distance)
+            }
         }
     }
 
@@ -226,6 +253,34 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         sensorXText.text = "N/A"
         sensorYText.text = "N/A"
         sensorZText.text = "N/A"
+    }
+
+    private fun updateProximityUI(distance: Float) {
+        proximityValue.text = "%.1f cm".format(distance)
+        val maxRange = proximitySensor?.maximumRange ?: 5.0f
+        val isNear = distance < maxRange
+
+        val chipBg = proximityStatusChip.background as? GradientDrawable
+        if (isNear) {
+            proximityInterpretationText.text = getString(R.string.proximity_near)
+            proximityInterpretationText.setTextColor(ContextCompat.getColor(this, R.color.sensor_motion_color))
+            chipBg?.setColor(ContextCompat.getColor(this, R.color.sensor_motion_color))
+            proximityStatusChip.text = getString(R.string.sensor_active)
+        } else {
+            proximityInterpretationText.text = getString(R.string.proximity_far)
+            proximityInterpretationText.setTextColor(ContextCompat.getColor(this, R.color.sensor_active_color))
+            chipBg?.setColor(ContextCompat.getColor(this, R.color.sensor_active_color))
+            proximityStatusChip.text = getString(R.string.sensor_active)
+        }
+    }
+
+    private fun renderProximityUnavailable() {
+        val chipBg = proximityStatusChip.background as? GradientDrawable
+        chipBg?.setColor(ContextCompat.getColor(this, R.color.sensor_inactive_color))
+        proximityStatusChip.text = getString(R.string.proximity_unavailable)
+        proximityInterpretationText.text = getString(R.string.proximity_unavailable)
+        proximityInterpretationText.setTextColor(ContextCompat.getColor(this, R.color.sensor_inactive_color))
+        proximityValue.text = "N/A"
     }
 
     // ── Form state ────────────────────────────────────────────────────────────
