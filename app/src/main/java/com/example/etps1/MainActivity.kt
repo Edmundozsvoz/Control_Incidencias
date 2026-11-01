@@ -7,6 +7,7 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
@@ -61,9 +62,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private var accelerometerAvailable = false
     private var proximityAvailable = false
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── Ciclo de vida de la Activity (Semana 14) ─────────────────────────────
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d(TAG_LIFECYCLE, "onCreate (savedInstanceState=${savedInstanceState != null})")
         setContentView(R.layout.activity_main)
 
         bindViews()
@@ -76,6 +78,38 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         findViewById<Button>(R.id.createReportButton).setOnClickListener {
             prepareReport()
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Log.d(TAG_LIFECYCLE, "onStart")
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        Log.d(TAG_LIFECYCLE, "onRestart")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG_LIFECYCLE, "onResume (sensores registrados)")
+        registerSensors()
+    }
+
+    override fun onPause() {
+        Log.d(TAG_LIFECYCLE, "onPause (sensores liberados)")
+        unregisterSensors()
+        super.onPause()
+    }
+
+    override fun onStop() {
+        Log.d(TAG_LIFECYCLE, "onStop")
+        super.onStop()
+    }
+
+    override fun onDestroy() {
+        Log.d(TAG_LIFECYCLE, "onDestroy (isChangingConfigurations=$isChangingConfigurations)")
+        super.onDestroy()
     }
 
     // ── View binding ──────────────────────────────────────────────────────────
@@ -180,8 +214,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
+    private fun registerSensors() {
         if (accelerometerAvailable) {
             sensorManager.registerListener(
                 this,
@@ -198,8 +231,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    override fun onPause() {
-        super.onPause()
+    private fun unregisterSensors() {
         sensorManager.unregisterListener(this)
     }
 
@@ -358,6 +390,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+        Log.d(TAG_LIFECYCLE, "onSaveInstanceState")
         outState.putString(KEY_TITLE, titleState)
         outState.putString(KEY_DESCRIPTION, descriptionState)
         outState.putString(KEY_PRIORITY, priorityState)
@@ -366,6 +399,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     }
 
     companion object {
+        private const val TAG_LIFECYCLE = "TPIS1_LIFECYCLE"
         private const val KEY_TITLE = "incident_title"
         private const val KEY_DESCRIPTION = "incident_description"
         private const val KEY_REPORT_PREPARED = "report_prepared"
