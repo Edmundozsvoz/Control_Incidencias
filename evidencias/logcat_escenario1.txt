@@ -1,0 +1,4 @@
+﻿--------- beginning of main
+11-01 20:00:34.224  5430  5430 D TPIS1_LIFECYCLE: onCreate (savedInstanceState=false)
+11-01 20:00:34.550  5430  5430 D TPIS1_LIFECYCLE: onStart
+11-01 20:00:34.552  5430  5430 D TPIS1_LIFECYCLE: onResume (sensores registrados)

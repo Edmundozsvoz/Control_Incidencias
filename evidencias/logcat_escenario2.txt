@@ -1,0 +1,7 @@
+﻿--------- beginning of main
+11-01 20:00:38.239  5430  5430 D TPIS1_LIFECYCLE: onPause (sensores liberados)
+11-01 20:00:38.767  5430  5430 D TPIS1_LIFECYCLE: onStop
+11-01 20:00:38.768  5430  5430 D TPIS1_LIFECYCLE: onSaveInstanceState
+11-01 20:00:40.295  5430  5430 D TPIS1_LIFECYCLE: onRestart
+11-01 20:00:40.296  5430  5430 D TPIS1_LIFECYCLE: onStart
+11-01 20:00:40.298  5430  5430 D TPIS1_LIFECYCLE: onResume (sensores registrados)
