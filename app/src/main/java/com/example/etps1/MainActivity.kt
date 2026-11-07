@@ -49,7 +49,11 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var proximityInterpretationText: TextView
     private lateinit var proximityValue: TextView
 
-    // ── Form state ───────────────────────────────────────────────────────────
+    // ── Conservación de estado (Semana 15: remember vs rememberSaveable) ────
+    // En Compose equivaldría a:
+    //   Modo volátil:     var titulo by remember { mutableStateOf("") }
+    //   Modo persistente: var titulo by rememberSaveable { mutableStateOf("") }
+    private var useSaveableState = true
     private var titleState = ""
     private var descriptionState = ""
     private var priorityState = PRIORITY_MEDIUM
@@ -315,12 +319,33 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         proximityValue.text = "N/A"
     }
 
-    // ── Form state ────────────────────────────────────────────────────────────
+    // ── Conservación y restauración de estado (Semana 15) ────────────────────
     private fun restoreState(savedInstanceState: Bundle?) {
-        titleState = savedInstanceState?.getString(KEY_TITLE).orEmpty()
-        descriptionState = savedInstanceState?.getString(KEY_DESCRIPTION).orEmpty()
-        priorityState = savedInstanceState?.getString(KEY_PRIORITY) ?: PRIORITY_MEDIUM
-        reportPrepared = savedInstanceState?.getBoolean(KEY_REPORT_PREPARED) ?: false
+        useSaveableState = intent?.getBooleanExtra(EXTRA_USE_SAVEABLE, true) ?: true
+        titleInput.isSaveEnabled = useSaveableState
+        descriptionInput.isSaveEnabled = useSaveableState
+
+        if (useSaveableState && savedInstanceState != null) {
+            // Equivalente a rememberSaveable { mutableStateOf(...) }: recupera del Bundle
+            titleState = savedInstanceState.getString(KEY_TITLE).orEmpty()
+            descriptionState = savedInstanceState.getString(KEY_DESCRIPTION).orEmpty()
+            priorityState = savedInstanceState.getString(KEY_PRIORITY) ?: PRIORITY_MEDIUM
+            reportPrepared = savedInstanceState.getBoolean(KEY_REPORT_PREPARED)
+            Log.d(
+                TAG_STATE,
+                "rememberSaveable/Bundle -> Restaurado: title='$titleState', priority='$priorityState', reportPrepared=$reportPrepared"
+            )
+        } else {
+            // Equivalente a remember { mutableStateOf("") }: se reinicia al recrear la Activity
+            titleState = ""
+            descriptionState = ""
+            priorityState = PRIORITY_MEDIUM
+            reportPrepared = false
+            Log.d(
+                TAG_STATE,
+                "remember (volatil) -> Estado reiniciado (useSaveable=$useSaveableState, savedInstanceState=${savedInstanceState != null})"
+            )
+        }
 
         titleInput.setText(titleState)
         descriptionInput.setText(descriptionState)
@@ -391,15 +416,28 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onSaveInstanceState(outState: Bundle) {
         Log.d(TAG_LIFECYCLE, "onSaveInstanceState")
-        outState.putString(KEY_TITLE, titleState)
-        outState.putString(KEY_DESCRIPTION, descriptionState)
-        outState.putString(KEY_PRIORITY, priorityState)
-        outState.putBoolean(KEY_REPORT_PREPARED, reportPrepared)
+        if (useSaveableState) {
+            outState.putString(KEY_TITLE, titleState)
+            outState.putString(KEY_DESCRIPTION, descriptionState)
+            outState.putString(KEY_PRIORITY, priorityState)
+            outState.putBoolean(KEY_REPORT_PREPARED, reportPrepared)
+            Log.d(
+                TAG_STATE,
+                "rememberSaveable/Bundle -> Guardado: title='$titleState', priority='$priorityState', reportPrepared=$reportPrepared"
+            )
+        } else {
+            Log.d(
+                TAG_STATE,
+                "remember (volatil) -> No se guarda en Bundle; datos se perderan al rotar"
+            )
+        }
         super.onSaveInstanceState(outState)
     }
 
     companion object {
         private const val TAG_LIFECYCLE = "TPIS1_LIFECYCLE"
+        private const val TAG_STATE = "TPIS1_STATE"
+        const val EXTRA_USE_SAVEABLE = "extra_use_saveable"
         private const val KEY_TITLE = "incident_title"
         private const val KEY_DESCRIPTION = "incident_description"
         private const val KEY_REPORT_PREPARED = "report_prepared"

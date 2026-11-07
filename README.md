@@ -1,42 +1,44 @@
 # Registro de Incidencias
 
-Aplicación Android académica en Kotlin que permite capturar el título, la descripción y la prioridad de una incidencia, preparar un reporte reactivo, monitorizar sensores en tiempo real y auditar el ciclo de vida completo de la `Activity` mediante bitácora en **Logcat**.
+Aplicación Android académica en Kotlin que permite capturar el título, la descripción y la prioridad de una incidencia, preparar un reporte reactivo, monitorizar sensores en tiempo real, auditar el ciclo de vida completo de la `Activity` y conservar el estado del formulario ante recreaciones por rotación de pantalla.
 
-Este avance corresponde a la **Semana 14: Trabajo Individual Evaluado — Bitácora del ciclo de vida en `RegistroIncidencias`** (40% del cuarto período) de la asignatura **Técnicas de Producción Industrial de Software I** (Ciclo 02-2026).
+Este avance corresponde a la **Semana 15: Práctica Individual con Entrega — Conserva el estado de `RegistroIncidencias`** de la asignatura **Técnicas de Producción Industrial de Software I** (Ciclo 02-2026).
+
+---
+
+## Conservación del Estado ante Recreación (Semana 15)
+
+Se implementó y comparó el comportamiento del estado de la interfaz en `MainActivity` frente a la recreación de la `Activity` provocada por la rotación de pantalla (`onDestroy(isChangingConfigurations=true)` → `onCreate(savedInstanceState=true)`):
+
+1. **Escenario con `remember` (Estado volátil en memoria de instancia):**
+   - El estado (`titleState`, `descriptionState`, `priorityState`, `reportPrepared`) vive únicamente en memoria mientras la instancia actual existe (`var titulo by remember { mutableStateOf("") }`).
+   - Al rotar el dispositivo, Android destruye y recrea `MainActivity`, reiniciando los campos a sus valores por defecto y perdiendo los datos ingresados por el usuario.
+
+2. **Escenario con `rememberSaveable` / `savedInstanceState` (Estado persistente en `Bundle`):**
+   - El estado se serializa automáticamente en el `Bundle` del sistema durante `onSaveInstanceState(outState)` (`var titulo by rememberSaveable { mutableStateOf("") }`) y se restaura en `onCreate(savedInstanceState)` mediante `restoreState(savedInstanceState)`.
+   - Al rotar la pantalla, el título, la descripción, la prioridad seleccionada y el estado del reporte preparado se conservan intactos.
+
+| Mecanismo evaluado | Sobrevive a recomposición / vista activa | Sobrevive a rotación (`onDestroy` → `onCreate`) | Resultado observado en `RegistroIncidencias` |
+| :--- | :---: | :---: | :--- |
+| **`remember` (Memoria volátil)** | Sí | No | Al girar el emulador a modo horizontal, el título, la descripción y la prioridad regresan a vacío / `Media`. |
+| **`rememberSaveable` / `Bundle`** | Sí | Sí | Al girar el emulador a modo horizontal, se restauran íntegramente el título, la descripción, la prioridad `Alta` y el reporte. |
 
 ---
 
 ## Bitácora del Ciclo de Vida de `MainActivity` (Semana 14)
 
-`MainActivity` está instrumentada con la etiqueta `TPIS1_LIFECYCLE` mediante `Log.d("TPIS1_LIFECYCLE", ...)` para registrar las transiciones de estado reales ante acciones del usuario y del sistema operativo:
+`MainActivity` está instrumentada con las etiquetas `TPIS1_LIFECYCLE` y `TPIS1_STATE` mediante `Log.d(...)` para registrar las transiciones de estado reales y la preservación del formulario:
 
-- **`onCreate(savedInstanceState)`**: Creación inicial de la instancia (`savedInstanceState=false`) o recreación tras cambio de configuración (`savedInstanceState=true`), inflado de vistas y restauración de formulario.
-- **`onStart()`**: La ventana de la actividad se hace visible en pantalla.
-- **`onRestart()`**: Transición intermedia cuando la actividad regresa a primer plano tras haber estado detenida (`onStop`).
-- **`onResume()`**: La actividad entra en estado interactivo (`RESUMED`) y registra los sensores (`registerSensors()`).
-- **`onPause()`**: Pérdida de foco interactivo; libera de inmediato los sensores de hardware (`unregisterSensors()`).
-- **`onStop()`**: La actividad deja de ser visible por completo (ej. al ir a *Home*).
-- **`onSaveInstanceState(outState)`**: Respaldo del estado del formulario (`título`, `descripción`, `prioridad` y bandera de reporte) en el `Bundle`.
-- **`onDestroy()`**: Destrucción de la instancia, distinguiendo recreación por configuración (`isChangingConfigurations=true`) frente a cierre definitivo con *Back* (`isChangingConfigurations=false`).
-
-### Resumen de Escenarios Verificados en Emulador (Pixel 7 · Android 14 / API 34)
-
-| Escenario | Secuencia observada en Logcat (`TPIS1_LIFECYCLE`) | Estado final | Interpretación técnica |
-| :--- | :--- | :--- | :--- |
-| **1. Apertura inicial** | `onCreate (savedInstanceState=false)` → `onStart` → `onResume` | `RESUMED` | Arranque en frío: Android instancia `MainActivity`, vincula vistas, activa sensores y entrega el foco al usuario. |
-| **2. Ir a Home y regresar** | Salida: `onPause` → `onStop` → `onSaveInstanceState`<br>Regreso: `onRestart` → `onStart` → `onResume` | `RESUMED` | Al ir a *Home* la actividad se oculta sin destruirse, liberando sensores y respaldando el estado; al volver, reutiliza la instancia vía `onRestart`. |
-| **3A. Rotación de pantalla** | `onPause` → `onStop` → `onSaveInstanceState` → `onDestroy (isChangingConfigurations=true)` → `onCreate (savedInstanceState=true)` → `onStart` → `onResume` | `RESUMED` | El cambio de configuración destruye y recrea `MainActivity`, restaurando los datos del formulario desde el `Bundle`. |
-| **3B. Cierre con Back** | `onPause` → `onStop` → `onDestroy (isChangingConfigurations=false)` | `DESTROYED` | Finalización voluntaria: Android omite `onSaveInstanceState` y destruye definitivamente la instancia. |
+- **`onCreate(savedInstanceState)`**: Creación inicial (`savedInstanceState=false`) o recreación tras cambio de configuración (`savedInstanceState=true`), inflado de vistas y llamada a `restoreState(savedInstanceState)`.
+- **`onStart()` / `onRestart()` / `onResume()`**: Activación de ventana, retorno desde segundo plano y registro de sensores (`registerSensors()`).
+- **`onPause()` / `onStop()`**: Liberación inmediata de sensores (`unregisterSensors()`) y paso a segundo plano.
+- **`onSaveInstanceState(outState)`**: Respaldo del estado del formulario (`KEY_TITLE`, `KEY_DESCRIPTION`, `KEY_PRIORITY`, `KEY_REPORT_PREPARED`) en el `Bundle`.
+- **`onDestroy()`**: Destrucción de la instancia (`isChangingConfigurations=true` al rotar vs. `false` al cerrar con *Back*).
 
 ### Cómo filtrar la bitácora en Logcat
 
-En la ventana **Logcat** de Android Studio:
 ```text
-package:com.example.etps1 tag:TPIS1_LIFECYCLE
-```
-O desde consola con ADB:
-```powershell
-adb logcat -v threadtime -s TPIS1_LIFECYCLE:D
+package:com.example.etps1 tag:TPIS1_LIFECYCLE tag:TPIS1_STATE
 ```
 
 ---
@@ -44,8 +46,8 @@ adb logcat -v threadtime -s TPIS1_LIFECYCLE:D
 ## Funcionalidades Acumuladas del Proyecto
 
 - **Formulario reactivo de incidencias:** Validación contextual de campos obligatorios, teclado configurado (`textCapSentences`, `actionNext`, `actionDone`) y selector táctil de prioridad (**Baja**, **Media**, **Alta**) con `MaterialCardView`.
-- **Tablero de diagnóstico del dispositivo:** Monitoreo en tiempo real de **Acelerómetro** (`Sensor.TYPE_ACCELEROMETER`) y **Proximidad** (`Sensor.TYPE_PROXIMITY`), con chips de disponibilidad e interpretación semántica.
-- **Persistencia ante recreación:** Conservación íntegra del formulario mediante `onSaveInstanceState`.
+- **Tablero de diagnóstico del dispositivo:** Monitoreo en tiempo real de **Acelerómetro** (`Sensor.TYPE_ACCELEROMETER`) y **Proximidad** (`Sensor.TYPE_PROXIMITY`).
+- **Persistencia ante recreación:** Conservación íntegra del formulario frente a rotación de pantalla (`rememberSaveable` / `savedInstanceState`).
 
 ---
 
