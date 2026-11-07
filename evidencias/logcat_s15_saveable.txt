@@ -1,0 +1,14 @@
+﻿--------- beginning of main
+11-07 22:12:39.215  4803  4803 D TPIS1_LIFECYCLE: onCreate (savedInstanceState=false)
+11-07 22:12:39.658  4803  4803 D TPIS1_STATE: remember (volatil) -> Estado reiniciado (useSaveable=true, savedInstanceState=false)
+11-07 22:12:39.674  4803  4803 D TPIS1_LIFECYCLE: onStart
+11-07 22:12:39.676  4803  4803 D TPIS1_LIFECYCLE: onResume (sensores registrados)
+11-07 22:12:52.236  4803  4803 D TPIS1_LIFECYCLE: onPause (sensores liberados)
+11-07 22:12:52.286  4803  4803 D TPIS1_LIFECYCLE: onStop
+11-07 22:12:52.287  4803  4803 D TPIS1_LIFECYCLE: onSaveInstanceState
+11-07 22:12:52.287  4803  4803 D TPIS1_STATE: rememberSaveable/Bundle -> Guardado: title='Falla en router piso 2', priority='Alta', reportPrepared=true
+11-07 22:12:52.290  4803  4803 D TPIS1_LIFECYCLE: onDestroy (isChangingConfigurations=true)
+11-07 22:12:52.325  4803  4803 D TPIS1_LIFECYCLE: onCreate (savedInstanceState=true)
+11-07 22:12:52.483  4803  4803 D TPIS1_STATE: rememberSaveable/Bundle -> Restaurado: title='Falla en router piso 2', priority='Alta', reportPrepared=true
+11-07 22:12:52.492  4803  4803 D TPIS1_LIFECYCLE: onStart
+11-07 22:12:52.499  4803  4803 D TPIS1_LIFECYCLE: onResume (sensores registrados)

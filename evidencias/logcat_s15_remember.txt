@@ -1,0 +1,14 @@
+﻿--------- beginning of main
+11-07 22:12:11.220  4559  4559 D TPIS1_LIFECYCLE: onCreate (savedInstanceState=false)
+11-07 22:12:11.546  4559  4559 D TPIS1_STATE: remember (volatil) -> Estado reiniciado (useSaveable=false, savedInstanceState=false)
+11-07 22:12:11.569  4559  4559 D TPIS1_LIFECYCLE: onStart
+11-07 22:12:11.576  4559  4559 D TPIS1_LIFECYCLE: onResume (sensores registrados)
+11-07 22:12:33.435  4559  4559 D TPIS1_LIFECYCLE: onPause (sensores liberados)
+11-07 22:12:33.443  4559  4559 D TPIS1_LIFECYCLE: onStop
+11-07 22:12:33.444  4559  4559 D TPIS1_LIFECYCLE: onSaveInstanceState
+11-07 22:12:33.448  4559  4559 D TPIS1_STATE: remember (volatil) -> No se guarda en Bundle; datos se perderan al rotar
+11-07 22:12:33.453  4559  4559 D TPIS1_LIFECYCLE: onDestroy (isChangingConfigurations=true)
+11-07 22:12:33.488  4559  4559 D TPIS1_LIFECYCLE: onCreate (savedInstanceState=true)
+11-07 22:12:33.589  4559  4559 D TPIS1_STATE: remember (volatil) -> Estado reiniciado (useSaveable=false, savedInstanceState=true)
+11-07 22:12:33.601  4559  4559 D TPIS1_LIFECYCLE: onStart
+11-07 22:12:33.605  4559  4559 D TPIS1_LIFECYCLE: onResume (sensores registrados)
