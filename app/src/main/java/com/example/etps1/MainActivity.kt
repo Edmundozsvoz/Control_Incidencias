@@ -16,6 +16,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.widget.doAfterTextChanged
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
@@ -49,15 +50,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var proximityInterpretationText: TextView
     private lateinit var proximityValue: TextView
 
-    // ── Conservación de estado (Semana 15: remember vs rememberSaveable) ────
-    // En Compose equivaldría a:
-    //   Modo volátil:     var titulo by remember { mutableStateOf("") }
-    //   Modo persistente: var titulo by rememberSaveable { mutableStateOf("") }
-    private var useSaveableState = true
-    private var titleState = ""
-    private var descriptionState = ""
-    private var priorityState = PRIORITY_MEDIUM
-    private var reportPrepared = false
+    // ── ViewModel de la pantalla (Semana 16) ─────────────────────────────────
+    private lateinit var viewModel: IncidenciaViewModel
 
     // ── Sensor state ─────────────────────────────────────────────────────────
     private lateinit var sensorManager: SensorManager
@@ -72,11 +66,13 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         Log.d(TAG_LIFECYCLE, "onCreate (savedInstanceState=${savedInstanceState != null})")
         setContentView(R.layout.activity_main)
 
+        viewModel = ViewModelProvider(this)[IncidenciaViewModel::class.java]
+
         bindViews()
         setupKeyboardActions()
         setupTactileInteractions()
         setupSensor()
-        restoreState(savedInstanceState)
+        syncUiFromViewModel(savedInstanceState != null)
         observeFormState()
 
         findViewById<Button>(R.id.createReportButton).setOnClickListener {
@@ -160,21 +156,20 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     // ── Priority tactile interaction ─────────────────────────────────────────
     private fun setupTactileInteractions() {
-        cardPriorityLow.setOnClickListener { selectPriority(PRIORITY_LOW) }
-        cardPriorityMedium.setOnClickListener { selectPriority(PRIORITY_MEDIUM) }
-        cardPriorityHigh.setOnClickListener { selectPriority(PRIORITY_HIGH) }
+        cardPriorityLow.setOnClickListener { selectPriority(IncidenciaViewModel.PRIORITY_LOW) }
+        cardPriorityMedium.setOnClickListener { selectPriority(IncidenciaViewModel.PRIORITY_MEDIUM) }
+        cardPriorityHigh.setOnClickListener { selectPriority(IncidenciaViewModel.PRIORITY_HIGH) }
     }
 
     private fun selectPriority(priority: String) {
-        if (priorityState != priority) {
-            priorityState = priority
+        if (viewModel.seleccionarPrioridad(priority)) {
             updatePriorityUI()
+            renderFeedback()
             Toast.makeText(
                 this,
                 getString(R.string.priority_changed_feedback, priority),
                 Toast.LENGTH_SHORT
             ).show()
-            invalidatePreparedReport()
         }
     }
 
@@ -196,9 +191,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             label.setTextColor(if (selected) selectedText else unselectedText)
         }
 
-        applyCard(cardPriorityLow, textPriorityLow, priorityState == PRIORITY_LOW)
-        applyCard(cardPriorityMedium, textPriorityMedium, priorityState == PRIORITY_MEDIUM)
-        applyCard(cardPriorityHigh, textPriorityHigh, priorityState == PRIORITY_HIGH)
+        applyCard(cardPriorityLow, textPriorityLow, viewModel.prioridad == IncidenciaViewModel.PRIORITY_LOW)
+        applyCard(cardPriorityMedium, textPriorityMedium, viewModel.prioridad == IncidenciaViewModel.PRIORITY_MEDIUM)
+        applyCard(cardPriorityHigh, textPriorityHigh, viewModel.prioridad == IncidenciaViewModel.PRIORITY_HIGH)
     }
 
     // ── Sensor setup ─────────────────────────────────────────────────────────
@@ -319,93 +314,73 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         proximityValue.text = "N/A"
     }
 
-    // ── Conservación y restauración de estado (Semana 15) ────────────────────
-    private fun restoreState(savedInstanceState: Bundle?) {
-        useSaveableState = intent?.getBooleanExtra(EXTRA_USE_SAVEABLE, true) ?: true
-        titleInput.isSaveEnabled = useSaveableState
-        descriptionInput.isSaveEnabled = useSaveableState
+    // ── Sincronización de UI con IncidenciaViewModel (Semana 16) ─────────────
+    private fun syncUiFromViewModel(isRecreated: Boolean) {
+        // Desactiva guardado automático en vistas para demostrar que el ViewModel conserva el estado
+        titleInput.isSaveEnabled = false
+        descriptionInput.isSaveEnabled = false
 
-        if (useSaveableState && savedInstanceState != null) {
-            // Equivalente a rememberSaveable { mutableStateOf(...) }: recupera del Bundle
-            titleState = savedInstanceState.getString(KEY_TITLE).orEmpty()
-            descriptionState = savedInstanceState.getString(KEY_DESCRIPTION).orEmpty()
-            priorityState = savedInstanceState.getString(KEY_PRIORITY) ?: PRIORITY_MEDIUM
-            reportPrepared = savedInstanceState.getBoolean(KEY_REPORT_PREPARED)
-            Log.d(
-                TAG_STATE,
-                "rememberSaveable/Bundle -> Restaurado: title='$titleState', priority='$priorityState', reportPrepared=$reportPrepared"
-            )
-        } else {
-            // Equivalente a remember { mutableStateOf("") }: se reinicia al recrear la Activity
-            titleState = ""
-            descriptionState = ""
-            priorityState = PRIORITY_MEDIUM
-            reportPrepared = false
-            Log.d(
-                TAG_STATE,
-                "remember (volatil) -> Estado reiniciado (useSaveable=$useSaveableState, savedInstanceState=${savedInstanceState != null})"
-            )
-        }
-
-        titleInput.setText(titleState)
-        descriptionInput.setText(descriptionState)
+        titleInput.setText(viewModel.titulo)
+        descriptionInput.setText(viewModel.descripcion)
         updatePriorityUI()
         renderFeedback()
+
+        if (isRecreated) {
+            Log.d(
+                TAG_VIEWMODEL,
+                "UI sincronizada tras rotacion desde ViewModel(instancia=${viewModel.hashCode()}): titulo='${viewModel.titulo}', prioridad='${viewModel.prioridad}', reportePreparado=${viewModel.reportePreparado}"
+            )
+        }
     }
 
     private fun observeFormState() {
         titleInput.doAfterTextChanged {
             val updated = it?.toString().orEmpty()
             titleInputLayout.error = null
-            if (updated != titleState) {
-                titleState = updated
-                invalidatePreparedReport()
+            if (updated != viewModel.titulo) {
+                viewModel.actualizarTitulo(updated)
+                renderFeedback()
             }
         }
         descriptionInput.doAfterTextChanged {
             val updated = it?.toString().orEmpty()
             descriptionInputLayout.error = null
-            if (updated != descriptionState) {
-                descriptionState = updated
-                invalidatePreparedReport()
+            if (updated != viewModel.descripcion) {
+                viewModel.actualizarDescripcion(updated)
+                renderFeedback()
             }
         }
     }
 
-    private fun invalidatePreparedReport() {
-        if (reportPrepared) {
-            reportPrepared = false
-            renderFeedback()
-        }
-    }
-
     private fun prepareReport() {
-        titleState = titleInput.text?.toString()?.trim().orEmpty()
-        descriptionState = descriptionInput.text?.toString()?.trim().orEmpty()
+        viewModel.actualizarTitulo(titleInput.text?.toString().orEmpty())
+        viewModel.actualizarDescripcion(descriptionInput.text?.toString().orEmpty())
 
-        val titleOk = titleState.isNotEmpty()
-        val descOk = descriptionState.isNotEmpty()
+        val valid = viewModel.prepararReporte()
+        val titleOk = viewModel.titulo.isNotEmpty()
+        val descOk = viewModel.descripcion.isNotEmpty()
 
         titleInputLayout.error = if (titleOk) null else getString(R.string.required_field_error)
         descriptionInputLayout.error = if (descOk) null else getString(R.string.required_field_error)
 
-        if (!titleOk || !descOk) {
-            reportPrepared = false
-            renderFeedback()
+        renderFeedback()
+        if (!valid) {
             if (!titleOk) titleInput.requestFocus() else descriptionInput.requestFocus()
             return
         }
 
-        reportPrepared = true
-        renderFeedback()
         Toast.makeText(this, R.string.report_ready_message, Toast.LENGTH_SHORT).show()
     }
 
     private fun renderFeedback() {
-        if (reportPrepared) {
-            statusText.text = getString(R.string.prepared_report_status, titleState)
+        if (viewModel.reportePreparado) {
+            statusText.text = getString(R.string.prepared_report_status, viewModel.titulo)
             statusText.setTextColor(ContextCompat.getColor(this, R.color.success_green))
-            statusDetailText.text = getString(R.string.prepared_report_detail, descriptionState, priorityState)
+            statusDetailText.text = getString(
+                R.string.prepared_report_detail,
+                viewModel.descripcion,
+                viewModel.prioridad
+            )
             statusDetailText.visibility = View.VISIBLE
         } else {
             statusText.setText(R.string.empty_report_status)
@@ -416,34 +391,11 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onSaveInstanceState(outState: Bundle) {
         Log.d(TAG_LIFECYCLE, "onSaveInstanceState")
-        if (useSaveableState) {
-            outState.putString(KEY_TITLE, titleState)
-            outState.putString(KEY_DESCRIPTION, descriptionState)
-            outState.putString(KEY_PRIORITY, priorityState)
-            outState.putBoolean(KEY_REPORT_PREPARED, reportPrepared)
-            Log.d(
-                TAG_STATE,
-                "rememberSaveable/Bundle -> Guardado: title='$titleState', priority='$priorityState', reportPrepared=$reportPrepared"
-            )
-        } else {
-            Log.d(
-                TAG_STATE,
-                "remember (volatil) -> No se guarda en Bundle; datos se perderan al rotar"
-            )
-        }
         super.onSaveInstanceState(outState)
     }
 
     companion object {
         private const val TAG_LIFECYCLE = "TPIS1_LIFECYCLE"
-        private const val TAG_STATE = "TPIS1_STATE"
-        const val EXTRA_USE_SAVEABLE = "extra_use_saveable"
-        private const val KEY_TITLE = "incident_title"
-        private const val KEY_DESCRIPTION = "incident_description"
-        private const val KEY_REPORT_PREPARED = "report_prepared"
-        private const val KEY_PRIORITY = "incident_priority"
-        const val PRIORITY_LOW = "Baja"
-        const val PRIORITY_MEDIUM = "Media"
-        const val PRIORITY_HIGH = "Alta"
+        private const val TAG_VIEWMODEL = "TPIS1_VIEWMODEL"
     }
 }
